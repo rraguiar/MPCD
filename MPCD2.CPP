@@ -1,0 +1,799 @@
+#include <bios.h>
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <graphics.h>
+#include <dos.h>
+
+struct val
+{
+char demanda,inicio,termino;
+}opera;
+
+FILE *fp;
+
+int gravar();
+int menuarquivo();
+int sair(void);
+void menuconfiguracao();
+void tela();
+int transmitir();
+void mostravalores();
+int gd=DETECT,gm,frente,atras,d,x,b,y,a,c,s,ponto,salvar,cont,valordemanda,posicao,resposta;
+char demandacont[5],horainicio[3],horatermino[3],valor[3],novademanda[5],novoinicio[3],novotermino[3],*novovalor;
+
+void main()
+	{
+	clrscr();
+	if ((fp=fopen("valores.mpc","rt"))==NULL)
+		{
+		printf("Houve um erro na abertura do arquivo");
+		getch();
+		clrscr();
+		exit (0);
+		}
+	if (fp!=NULL)
+		{
+		rewind(fp);
+		fseek(fp,0L,SEEK_SET);
+		fread(&opera,sizeof(opera),1,fp);
+		fclose(fp);
+		}
+	tela();
+	}
+void tela()
+	{
+	initgraph (&gd,&gm,"c:\\language\\tc\\bgi");
+	setbkcolor(0);
+	setfillstyle(1,BLUE);
+	x=getmaxx();
+	y=getmaxy();
+	bar (0,0,x,35);
+	bar (0,455,x,y);
+	settextstyle(1,0,2);
+	setcolor(15);
+	outtextxy (25,5,"RQUIVO");
+	outtextxy (122,5,"ONFIGURACAO");
+	outtextxy(282,5,"RANSMITIR");
+	setcolor(YELLOW);
+	outtextxy(15,5,"A");
+	outtextxy(110,5,"C");
+	outtextxy(270,5,"T");
+	setcolor(WHITE);
+	settextstyle(7,0,1);
+	outtextxy(10,455,"Bem Vindo ao Software de Visualizacao do MPCD.");
+	settextstyle(10,0,8);
+	for(atras=700,frente=-256;atras>=320,frente<=84;atras--,frente++)
+		{
+		setcolor(WHITE);
+		outtextxy(frente,100,"M P");
+		outtextxy(atras,100,"C D");
+		delay(3);
+		setcolor(BLACK);
+		outtextxy(frente,100,"M P");
+		outtextxy(atras,100,"C D");
+		}
+	setcolor(WHITE);
+	outtextxy(atras,100,"C D");
+	outtextxy(frente,100,"M P");
+	settextstyle(7,0,2);
+	setcolor(LIGHTBLUE);
+	outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+	setfillstyle(1,WHITE);
+	floodfill(100,155,WHITE);
+	floodfill(250,155,WHITE);
+	floodfill(400,155,WHITE);
+	floodfill(520,155,WHITE);
+	transmitir();
+	delay(1000);
+	mostravalores();
+	do{
+		a=getch();
+		b=0;
+		if (a==13||a==97||a==65||a==99||a==67||a==116||a==84||a==27)
+			{
+			b=1;
+			setfillstyle(1,BLUE);
+			bar (0,455,x,y);
+			setcolor(WHITE);
+			settextstyle(7,0,1);
+			outtextxy(10,455,"Tecle a letra correspondente desejada.");
+			if (a==13||a==97||a==65)  // Apertar A, ENTER ou para cima
+				menuarquivo();
+			if (a==99||a==67)   // Escolher o menu CONFIGURACAO
+				menuconfiguracao();
+			if (a==116||a==84)  // Escolher menu TRANSMITIR
+				transmitir();
+			if (a==27||c==114||c==82)//Apertar ESC ou escolher SAIR no menu arquivo
+			s=sair();
+			}
+		}while(b==0);
+	getch();
+	}
+int menuarquivo()
+	{
+	settextstyle(3,0,1);
+	setfillstyle(1,BLUE);
+	bar(5,35,100,141);
+	setcolor(WHITE);
+	rectangle(7,2,98,139);
+	rectangle(10,5,95,136);
+	rectangle(10,34,95,37);
+	outtextxy(28,45,"ALVAR");
+	outtextxy(28,74,"OSTRAR");
+	outtextxy(16,103,"SAI");
+	setcolor(YELLOW);
+	outtextxy(16,45,"S");
+	outtextxy(16,74,"M");
+	outtextxy(43,103,"R");
+	do{
+	c=getch();
+	}while(c!=83&&c!=115&&c!=82&&c!=114&&c!=27&&c!=77&&c!=109);
+	if (c==27||c==114||c==82)// SE ESCOLHER SAIR OU APERTAR ESC
+		{
+		setfillstyle(1,BLUE);
+		bar(5,33,100,35);
+		bar(5,2,10,33);
+		bar(5,2,100,5);
+		bar(95,2,105,33);
+		setfillstyle(1,BLACK);
+		bar(5,36,100,142);
+		b=0;
+		return(c);
+		}
+	if (c==115||c==83)// SE ESCOLHER SALVAR
+		{
+		setfillstyle(1,BLUE);
+		bar(5,33,100,35);
+		bar(5,2,10,33);
+		bar(5,2,100,5);
+		bar(95,2,105,33);
+		setfillstyle(1,BLACK);
+		bar(5,36,100,142);
+		gravar();
+		b=0;
+		}
+	if (c==77||c==109)//SE ESCOLHER MOSTRAR
+		{
+		setfillstyle(1,BLUE);
+		bar(5,33,100,35);
+		bar(5,2,10,33);
+		bar(5,2,100,5);
+		bar(95,2,105,33);
+		mostravalores();
+		b=0;
+		}
+	}
+void menuconfiguracao()
+	{
+	setfillstyle(1,BLUE);
+	bar(100,35,260,142);
+	settextstyle(3,0,1);
+	setcolor(WHITE);
+	rectangle(102,2,258,140);
+	rectangle(105,5,255,137);
+	rectangle(105,34,255,37);
+	outtextxy(124,47,"EMANDA");
+	outtextxy(121,77,"ORA INICIO");
+	outtextxy(110,107,"H");
+	outtextxy(133,107,"RA TERMINO");
+	setcolor(YELLOW);
+	outtextxy(110,47,"D");
+	outtextxy(110,77,"H");
+	outtextxy(121,107,"O");
+	do{
+		c=getch();
+		}while(c!=100&&c!=68&&c!=102&&c!=70&&c!=104&&c!=72&&c!=111&&c!=79&&c!=27);
+	if (c==27)
+		{
+		setfillstyle(1,BLUE);
+		bar(100,33,260,35);
+		bar(100,2,105,33);
+		bar(105,2,260,5);
+		bar(255,2,265,33);
+		setfillstyle(1,BLACK);
+		bar(100,36,260,142);
+		setcolor(WHITE);
+		settextstyle(10,0,8);
+		outtextxy(85,100,"M P C D");
+		setfillstyle(1,WHITE);
+		floodfill(150,155,WHITE);
+		floodfill(100,155,WHITE);
+		floodfill(250,155,WHITE);
+		b=0;
+		}
+	if (c==68||c==100)// Se escolher Demanda no menu
+		{
+		setfillstyle(1,BLACK);
+		bar(100,36,260,172);
+		setcolor(WHITE);
+		settextstyle(10,0,8);
+		outtextxy(85,100,"M P C D");
+		setfillstyle(1,WHITE);
+		floodfill(100,155,WHITE);
+		floodfill(150,155,WHITE);
+		floodfill(250,155,WHITE);
+		setfillstyle(1,BLUE);
+		bar(100,33,260,35);
+		bar(100,2,105,33);
+		bar(105,2,260,5);
+		bar(255,2,265,33);
+		bar(170,150,470,330);
+		setcolor(WHITE);
+		rectangle(175,155,465,325);
+		rectangle(178,158,462,322);
+		setfillstyle (1,BLUE);
+		bar (0,455,x,y);
+		setcolor(WHITE);
+		settextstyle(7,0,1);
+		outtextxy(10,455,"Entre com valores inteiros de 100 a 1000.");
+		settextstyle(2,0,7);
+		outtextxy(190,185,"Valor atual de Demanda");
+		itoa (opera.demanda*100,valor,10);
+		if (opera.demanda==0x0)
+			itoa (1000,valor,10);
+		outtextxy(305,215,valor);
+		outtextxy(190,245,"Entre com o novo valor.");
+		cont=0;
+		posicao=305;
+		do	{
+			do	{
+				novademanda[cont]=getch();
+				if (cont==1||cont==2)
+					{
+					if (novademanda[cont]!=48&&novademanda[cont]!=13)
+						novademanda[cont]=47;
+					if (novademanda[cont]==13)
+						novademanda[cont]=47;
+					}
+				if (cont==3)
+					if(novademanda[cont]!=48&&novademanda[cont]!=13&&novademanda[0]!=49)
+						novademanda[cont]=47;
+				if (cont==3)
+					if(novademanda[cont]==48&&novademanda[cont]!=13&&novademanda[0]!=49)
+						novademanda[cont]=47;
+				if (cont==4&&novademanda[cont]!=13)
+					novademanda[cont]=47;
+				}while(novademanda[cont]!=48&&novademanda[cont]!=49&&novademanda[cont]!=50&&novademanda[cont]!=51&&novademanda[cont]!=52&&novademanda[cont]!=53&&novademanda[cont]!=54&&novademanda[cont]!=55&&novademanda[cont]!=56&&novademanda[cont]!=57&&novademanda[cont]!=13);
+			if (novademanda[cont]==48||novademanda[cont]==49||novademanda[cont]==50||novademanda[cont]==51||novademanda[cont]==52||novademanda[cont]==53||novademanda[cont]==54||novademanda[cont]==55||novademanda[cont]==56||novademanda[cont]==57)
+				{
+				*novovalor=novademanda[cont];
+				outtextxy(posicao,275,novovalor);
+				posicao+=12;
+				}
+			cont++;
+			}while(novademanda[cont-1]!=13);
+		switch (novademanda[0])
+			{
+			case 49:	{
+								if (cont==4)
+									{opera.demanda=0x1;break;}
+								if (cont==5)
+									{opera.demanda=0x0;break;}
+								}
+			case 50: opera.demanda=0x2;break;
+			case 51: opera.demanda=0x3;break;
+			case 52: opera.demanda=0x4;break;
+			case 53: opera.demanda=0x5;break;
+			case 54: opera.demanda=0x6;break;
+			case 55: opera.demanda=0x7;break;
+			case 56: opera.demanda=0x8;break;
+			case 57: opera.demanda=0x9;break;
+			default: opera.demanda=0x1;break;
+			}
+		setfillstyle(1,BLACK);
+		bar(170,150,470,330);
+		setcolor(WHITE);
+		settextstyle(10,0,8);
+		outtextxy(85,100,"M P C D");
+		settextstyle(7,0,2);
+		setcolor(LIGHTBLUE);
+		outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+		setfillstyle(1,WHITE);
+		floodfill(100,155,WHITE);
+		floodfill(150,155,WHITE);
+		floodfill(250,155,WHITE);
+		floodfill(400,155,WHITE);
+		c=0;
+		b=0;
+		}
+	if (c==104||c==72)//Se escolher Hora de Inicio no menu
+		{
+		setfillstyle(1,BLACK);
+		bar(100,36,260,172);
+		setcolor(WHITE);
+		settextstyle(10,0,8);
+		outtextxy(85,100,"M P C D");
+		setfillstyle(1,WHITE);
+		floodfill(100,155,WHITE);
+		floodfill(150,155,WHITE);
+		floodfill(250,155,WHITE);
+		setfillstyle(1,BLUE);
+		bar(100,33,260,35);
+		bar(100,2,105,33);
+		bar(105,2,260,5);
+		bar(255,2,265,33);
+		bar(115,150,525,330);
+		setcolor(WHITE);
+		rectangle(120,155,520,325);
+		rectangle(123,158,517,322);
+		setfillstyle (1,BLUE);
+		bar (0,455,x,y);
+		setcolor(WHITE);
+		settextstyle(7,0,1);
+		outtextxy(10,455,"Entre com valores de 00 a 23.");
+		settextstyle(2,0,7);
+		outtextxy(155,185,"Valor atual da Hora de Inicio");
+		itoa (opera.inicio,valor,10);
+		outtextxy(265,215,valor);
+		outtextxy(190,245,"Entre com o novo valor.");
+		posicao=265;
+		cont=0;
+		do	{
+			do	{
+				novoinicio[cont]=getch();
+					if (cont==0)
+						if (novoinicio[cont]!=48&&novoinicio[cont]!=49&&novoinicio[cont]!=50)
+							novoinicio[cont]=47;
+					if (cont==1)
+						if (novoinicio[cont]!=48&&novoinicio[cont]!=49&&novoinicio[cont]!=50&&novoinicio[cont]!=51&&novoinicio[cont]!=52&&novoinicio[0]==50)
+							novoinicio[cont]=47;
+					if (cont==2)
+						if (novoinicio[cont]!=13)
+							novoinicio[cont]=47;
+					}while(novoinicio[cont]!=48&&novoinicio[cont]!=49&&novoinicio[cont]!=50&&novoinicio[cont]!=51&&novoinicio[cont]!=52&&novoinicio[cont]!=53&&novoinicio[cont]!=54&&novoinicio[cont]!=55&&novoinicio[cont]!=56&&novoinicio[cont]!=57&&novoinicio[cont]!=13);
+			if (novoinicio[cont]==48||novoinicio[cont]==49||novoinicio[cont]==50||novoinicio[cont]==51||novoinicio[cont]==52||novoinicio[cont]==53||novoinicio[cont]==54||novoinicio[cont]==55||novoinicio[cont]==56||novoinicio[cont]==57)
+				{
+				*novovalor=novoinicio[cont];
+				outtextxy(posicao,275,novovalor);
+				posicao+=12;
+				}
+			cont++;
+			}while(novoinicio[cont-1]!=13);
+		switch (novoinicio[0])
+			{
+			case 48:{
+				if (novoinicio[1]==48)
+					{opera.inicio=0x0;break;}
+				if (novoinicio[1]==49)
+					{opera.inicio=0x1;break;}
+				if (novoinicio[1]==50)
+					{opera.inicio=0x2;break;}
+				if (novoinicio[1]==51)
+					{opera.inicio=0x3;break;}
+				if (novoinicio[1]==52)
+					{opera.inicio=0x4;break;}
+				if (novoinicio[1]==53)
+					{opera.inicio=0x5;break;}
+				if (novoinicio[1]==54)
+					{opera.inicio=0x6;break;}
+				if (novoinicio[1]==55)
+					{opera.inicio=0x7;break;}
+				if (novoinicio[1]==56)
+					{opera.inicio=0x8;break;}
+				if (novoinicio[1]==57)
+					{opera.inicio=0x9;break;}
+				}
+			case 49:{
+				if (novoinicio[1]==48)
+					{opera.inicio=0x0a;break;}
+				if (novoinicio[1]==49)
+					{opera.inicio=0xb;break;}
+				if (novoinicio[1]==50)
+					{opera.inicio=0xc;break;}
+				if (novoinicio[1]==51)
+					{opera.inicio=0xd;break;}
+				if (novoinicio[1]==52)
+					{opera.inicio=0xe;break;}
+				if (novoinicio[1]==53)
+					{opera.inicio=0xf;break;}
+				if (novoinicio[1]==54)
+					{opera.inicio=0x10;break;}
+				if (novoinicio[1]==55)
+					{opera.inicio=0x11;break;}
+				if (novoinicio[1]==56)
+					{opera.inicio=0x12;break;}
+				if (novoinicio[1]==57)
+					{opera.inicio=0x13;break;}
+				}
+			case 50:{
+				if (novoinicio[1]==48)
+					{opera.inicio=0x14;break;}
+				if (novoinicio[1]==49)
+					{opera.inicio=0x15;break;}
+				if (novoinicio[1]==50)
+					{opera.inicio=0x16;break;}
+				if (novoinicio[1]==51)
+					{opera.inicio=0x17;break;}
+				if (novoinicio[1]==52)
+					{opera.inicio=0x18;break;}
+				}
+			default: opera.inicio=0x8;break;
+			}
+		setfillstyle(1,BLACK);
+		bar(115,150,525,330);
+		setcolor(WHITE);
+		settextstyle(10,0,8);
+		outtextxy(85,100,"M P C D");
+		settextstyle(7,0,2);
+		setcolor(LIGHTBLUE);
+		outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+		setfillstyle(1,WHITE);
+		floodfill(100,155,WHITE);
+		floodfill(150,155,WHITE);
+		floodfill(250,155,WHITE);
+		floodfill(400,155,WHITE);
+		floodfill(520,155,WHITE);
+		c=0;
+		b=0;
+		}
+	if (c==111||c==79)//Se escolher Hora do Termino no menu
+		{
+		setfillstyle(1,BLACK);
+		bar(100,36,260,172);
+		setcolor(WHITE);
+		settextstyle(10,0,8);
+		outtextxy(85,100,"M P C D");
+		setfillstyle(1,WHITE);
+		floodfill(100,155,WHITE);
+		floodfill(150,155,WHITE);
+		floodfill(250,155,WHITE);
+		setfillstyle(1,BLUE);
+		bar(100,33,260,35);
+		bar(100,2,105,33);
+		bar(105,2,260,5);
+		bar(255,2,265,33);
+		bar(115,150,525,330);
+		setcolor(WHITE);
+		rectangle(120,155,520,325);
+		rectangle(123,158,517,322);
+		setfillstyle (1,BLUE);
+		bar (0,455,x,y);
+		setcolor(WHITE);
+		settextstyle(7,0,1);
+		outtextxy(10,455,"Entre com valores de 00 a 23.");
+		settextstyle(2,0,7);
+		outtextxy(145,185,"Valor atual da Hora do Termino");
+		itoa (opera.termino,valor,10);
+		outtextxy(265,215,valor);
+		outtextxy(190,245,"Entre com o novo valor.");
+		posicao=265;
+		cont=0;
+		do	{
+				do	{
+					novotermino[cont]=getch();
+						if (cont==0)
+							if (novotermino[cont]!=48&&novotermino[cont]!=49&&novotermino[cont]!=50)
+								novotermino[cont]=47;
+						if (cont==1)
+							if (novotermino[cont]!=48&&novotermino[cont]!=49&&novotermino[cont]!=50&&novotermino[cont]!=51&&novotermino[cont]!=52&&novotermino[0]==50)
+								novotermino[cont]=47;
+						if (cont==2)
+							if (novotermino[cont]!=13)
+								novotermino[cont]=47;
+						}while(novotermino[cont]!=48&&novotermino[cont]!=49&&novotermino[cont]!=50&&novotermino[cont]!=51&&novotermino[cont]!=52&&novotermino[cont]!=53&&novotermino[cont]!=54&&novotermino[cont]!=55&&novotermino[cont]!=56&&novotermino[cont]!=57&&novotermino[cont]!=13);
+				if (novotermino[cont]==48||novotermino[cont]==49||novotermino[cont]==50||novotermino[cont]==51||novotermino[cont]==52||novotermino[cont]==53||novotermino[cont]==54||novotermino[cont]==55||novotermino[cont]==56||novotermino[cont]==57)
+					{
+					*novovalor=novotermino[cont];
+					outtextxy(posicao,275,novovalor);
+					posicao+=12;
+					}
+				cont++;
+				}while(novotermino[cont-1]!=13);
+		cont++;
+		switch (novotermino[0])
+			{
+			case 48:
+				if (novotermino[1]==48)
+					{opera.termino=0x0;break;}
+				if (novotermino[1]==49)
+					{opera.termino=0x1;break;}
+				if (novotermino[1]==50)
+					{opera.termino=0x2;break;}
+				if (novotermino[1]==51)
+					{opera.termino=0x3;break;}
+				if (novotermino[1]==52)
+					{opera.termino=0x4;break;}
+				if (novotermino[1]==53)
+					{opera.termino=0x5;break;}
+				if (novotermino[1]==54)
+					{opera.termino=0x6;break;}
+				if (novotermino[1]==55)
+					{opera.termino=0x7;break;}
+				if (novotermino[1]==56)
+					{opera.termino=0x8;break;}
+				if (novotermino[1]==57)
+					{opera.termino=0x9;break;}
+			case 49:
+				if (novotermino[1]==48)
+					{opera.termino=0xa;break;}
+				if (novotermino[1]==49)
+					{opera.termino=0xb;break;}
+				if (novotermino[1]==50)
+					{opera.termino=0xc;break;}
+				if (novotermino[1]==51)
+					{opera.termino=0xd;break;}
+				if (novotermino[1]==52)
+					{opera.termino=0xe;break;}
+				if (novotermino[1]==53)
+					{opera.termino=0xf;break;}
+				if (novotermino[1]==54)
+					{opera.termino=0x10;break;}
+				if (novotermino[1]==55)
+					{opera.termino=0x11;break;}
+				if (novotermino[1]==56)
+					{opera.termino=0x12;break;}
+				if (novotermino[1]==57)
+					{opera.termino=0x13;break;}
+			case 50:
+				if (novotermino[1]==48)
+					{opera.termino=0x14;break;}
+				if (novotermino[1]==49)
+					{opera.termino=0x15;break;}
+				if (novotermino[1]==50)
+					{opera.termino=0x16;break;}
+				if (novotermino[1]==51)
+					{opera.termino=0x17;break;}
+				if (novotermino[1]==52)
+					{opera.termino=0x18;break;}
+			default: opera.termino=0x8;break;
+			}
+		setfillstyle(1,BLACK);
+		bar(115,150,525,330);
+		setcolor(WHITE);
+		settextstyle(10,0,8);
+		outtextxy(85,100,"M P C D");
+		settextstyle(7,0,2);
+		setcolor(LIGHTBLUE);
+		outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+		setfillstyle(1,WHITE);
+		floodfill(100,155,WHITE);
+		floodfill(150,155,WHITE);
+		floodfill(250,155,WHITE);
+		floodfill(400,155,WHITE);
+		floodfill(520,155,WHITE);
+		c=0;
+		b=0;
+		}
+	}
+int transmitir()
+	{
+	setfillstyle(1,BLUE);
+	bar(200,190,440,290);
+	setcolor(WHITE);
+	rectangle(205,195,435,285);
+	rectangle(208,198,432,282);
+	settextstyle(2,0,7);
+	outtextxy(240,230,"Transmitindo...");
+	setfillstyle (1,BLUE);
+	bar (0,455,x,y);
+	setcolor(WHITE);
+	settextstyle(7,0,1);
+	outtextxy(10,455,"Iniciando Transmissao dos dados.");
+	setcolor(YELLOW);
+	line(240,252,397,252);
+	_bios_serialcom(0,0,131);
+	outport(0,opera.demanda);
+	outport(0,opera.inicio);
+	outport(0,opera.termino);
+	cont=0;
+	do	{
+		if (cont==5)
+			break;
+		if (inportb(0)==0xaa)
+			resposta=0;
+		else resposta=1;
+		cont++;
+		}while(resposta!=0);
+	if (resposta!=0)
+		{
+		outport(0,opera.demanda);
+		outport(0,opera.inicio);
+		outport(0,opera.termino);
+		}
+	delay(1000);
+	setfillstyle(1,BLACK);
+	bar(200,190,440,290);
+	setcolor(WHITE);
+	settextstyle(10,0,8);
+	outtextxy(85,100,"M P C D");
+	settextstyle(7,0,2);
+	setcolor(LIGHTBLUE);
+	outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+	setfillstyle(1,WHITE);
+	floodfill(250,200,WHITE);
+	floodfill(400,248,WHITE);
+	setfillstyle (1,BLUE);
+	bar (0,455,x,y);
+	setcolor(WHITE);
+	settextstyle(7,0,1);
+	outtextxy(10,455,"Tecle ENTER ou a letra correspondente desejada.");
+	b=0;
+	}
+int sair(void)
+	{
+	setfillstyle(1,BLUE);
+	bar(200,150,440,330);
+	setcolor(WHITE);
+	rectangle(205,155,435,325);
+	rectangle(208,158,432,322);
+	settextstyle(2,0,7);
+	outtextxy(220,190,"Voce deseja sair?");
+	outtextxy(265,260,"im      ao");
+	setcolor(YELLOW);
+	outtextxy(253,260,"S       N");
+		do{
+			s=getch();
+			}while(s!=83&&s!=115&&s!=78&&s!=110&&s!=27);
+	if(s==83||s==115)
+		{
+		setfillstyle (1,BLUE);
+		bar (185,150,465,330);
+		setcolor (WHITE);
+		rectangle(190,155,460,325);
+		rectangle(193,158,457,322);
+		settextstyle(2,0,7);
+		outtextxy(215,190,"Voce deseja salvar?");
+		outtextxy(265,260,"im      ao");
+		setcolor(YELLOW);
+		outtextxy(253,260,"S       N");
+		do{
+			salvar=getch();
+			}while(salvar!=83&&salvar!=115&&salvar!=salvar!=78&&salvar!=110&&salvar!=27);
+		if (salvar==83||salvar==115)// Sim para sair e para salvar
+			{
+			setfillstyle(1,BLACK);
+			bar (185,150,465,330);
+			settextstyle(10,0,8);
+			setcolor(WHITE);
+			outtextxy(85,100,"M P C D");
+			settextstyle(7,0,2);
+			setcolor(LIGHTBLUE);
+			outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+			setfillstyle(1,WHITE);
+			floodfill(100,155,WHITE);
+			floodfill(250,155,WHITE);
+			floodfill(400,155,WHITE);
+			floodfill(520,155,WHITE);
+			if (resposta=gravar()==1)
+				return(b=0);
+
+			delay(500);
+			closegraph();
+			clrscr();
+			exit(0);
+			}
+		if (salvar==78||salvar==110)// Sim para sair e nao para salvar
+			{
+			setfillstyle(1,BLACK);
+			bar (185,150,465,330);
+			settextstyle(10,0,8);
+			setcolor(WHITE);
+			outtextxy(85,100,"M P C D");
+			settextstyle(7,0,2);
+			setcolor(LIGHTBLUE);
+			outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+			setfillstyle(1,WHITE);
+			floodfill(100,155,WHITE);
+			floodfill(150,155,WHITE);
+			floodfill(250,155,WHITE);
+			floodfill(400,155,WHITE);
+			floodfill(520,155,WHITE);
+			delay(500);
+			closegraph();
+			clrscr();
+			exit(0);
+			}
+		}
+	if(s==78||s==110||s==27||salvar==27)// Nao para sair ou ESC
+		{
+		setfillstyle(1,BLACK);
+		bar(200,150,440,330);
+		settextstyle(10,0,8);
+		setcolor(WHITE);
+		outtextxy(85,100,"M P C D");
+		settextstyle(7,0,2);
+		setcolor(LIGHTBLUE);
+		outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+		setfillstyle(1,WHITE);
+		floodfill(100,155,WHITE);
+		floodfill(250,155,WHITE);
+		floodfill(400,155,WHITE);
+		floodfill(520,155,WHITE);
+		setfillstyle (1,BLUE);
+		bar (0,455,x,y);
+		setcolor(WHITE);
+		settextstyle(7,0,1);
+		outtextxy(10,455,"Tecle ENTER ou a letra correspondente desejada.");
+		b=0;
+		}
+	}
+void mostravalores()
+	{
+	setfillstyle(1,BLACK);
+	bar (0,36,x,454);
+	setfillstyle (1,BLUE);
+	bar (0,455,x,y);
+	setcolor(WHITE);
+	settextstyle(7,0,1);
+	outtextxy(10,455,"Digite ESC para sair.");
+	settextstyle(1,0,1);
+	outtextxy(120,120,"DEMANDA CONTRATADA");
+	outtextxy(120,226,"HORA DE INICIO");
+	outtextxy(120,335,"HORA DE TERMINO");
+	rectangle(390,110,520,145);
+	rectangle(390,216,520,251);
+	rectangle(390,325,520,360);
+	rectangle(392,112,518,143);
+	rectangle(392,218,518,249);
+	rectangle(392,327,518,358);
+	setcolor(YELLOW);
+	line(120,142,325,142);
+	line(120,248,260,248);
+	line(120,357,285,357);
+	setcolor(BLUE);
+	itoa (opera.demanda*100,demandacont,10);
+	itoa (opera.inicio,horainicio,10);
+	itoa (opera.termino,horatermino,10);
+	setcolor(YELLOW);
+	outtextxy(430,115,demandacont);
+	outtextxy(430,221,horainicio);
+	outtextxy(430,330,horatermino);
+	do{
+		}while (getch()!=27);
+	setfillstyle(1,BLACK);
+	bar (0,36,x,454);
+	setcolor(WHITE);
+	settextstyle(10,0,8);
+	outtextxy(85,100,"M P C D");
+	setfillstyle(1,WHITE);
+	floodfill(100,155,WHITE);
+	floodfill(250,155,WHITE);
+	floodfill(400,155,WHITE);
+	floodfill(520,155,WHITE);
+	settextstyle(7,0,2);
+	setcolor(LIGHTBLUE);
+	outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+	setfillstyle (1,BLUE);
+	bar (0,455,x,y);
+	setcolor(WHITE);
+	settextstyle(7,0,1);
+	outtextxy(10,455,"Tecle ENTER ou a letra correspondente desejada.");
+
+	}
+int gravar()
+	{
+	if ((fp=fopen("valores.mpc","wt+"))==NULL)
+		{
+		setfillstyle(1,BLUE);
+		bar(170,150,490,330);
+		setcolor(WHITE);
+		rectangle(175,155,485,325);
+		rectangle(178,158,482,322);
+		settextstyle(2,0,7);
+		outtextxy(195,195,"Erro gravando o arquivo");
+		outtextxy(245,255,"Tente novamente");
+		setcolor(YELLOW);
+		line(240,277,422,277);
+		getch();
+		setfillstyle(1,BLACK);
+		bar(170,150,490,330);
+		setcolor(WHITE);
+		settextstyle(10,0,8);
+		outtextxy(85,100,"M P C D");
+		setfillstyle(1,WHITE);
+		floodfill(250,155,WHITE);
+		floodfill(400,155,WHITE);
+		settextstyle(7,0,2);
+		setcolor(LIGHTBLUE);
+		outtextxy(80,275,"Medidor de Potencia e Controle de Demanda");
+		setfillstyle (1,BLUE);
+		return(1);
+		}
+	if (fp!=NULL)
+		{
+		fwrite(&opera,sizeof(opera),1,fp);
+		fclose(fp);
+		return(0);
+		}
+	}
